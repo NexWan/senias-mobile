@@ -71,26 +71,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'white',
         paddingVertical: 15,
-        borderCurve: 'continuous',
-        shadowColor: 'black',
-        shadowOffset: {width: 1, height: 10},
-        shadowRadius: 10,
-        shadowOpacity: 1,
+        borderTopEndRadius: 20,
     },
     tabbarItem: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         bottom: 10,
-        
+        backgroundColor: 'white',
     },
     tabContainer: {
         flex: 1/10,
         justifyContent: 'center',
         backgroundColor: 'cyan',
         alignItems: 'center',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
+        borderTopEndRadius: 20,
+        borderTopLeftRadius: 20,
     }
 })
 

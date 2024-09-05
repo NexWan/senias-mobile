@@ -1,203 +1,97 @@
-import { Image, StyleSheet, Platform, Button, TouchableOpacity } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text } from 'react-native';
-import { useEffect, useRef, useState } from 'react';
-import {Camera, Frame, useCameraDevice, useCameraFormat, useCameraPermission, useFrameProcessor, } from 'react-native-vision-camera'
-import { Worklets } from 'react-native-worklets-core';
-import * as ImageManipulator from 'expo-image-manipulator';
+import { useWordContext } from '@/context/useWordContext';
+import { StyleSheet, Text, TouchableOpacity, Image, FlatList, View } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import B from "@/assets/images/hands/B.png"
+import { useState } from 'react';
+
 
 export default function HomeScreen() {
-  const device = useCameraDevice('front');
-  const [isCapturing, setIsCapturing] = useState(false);
-  const { hasPermission, requestPermission } = useCameraPermission()  
-  const cameraRef = useRef<Camera>(null);
-  const captureIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const [currentWord, setCurrentWord] = useState<string | null>(null);
-  const similarityRef = useRef<number | null>(null);
+  const { word: selectedWord, setWord: setWordSelected } = useWordContext();
+  const handWord = [
+    {word:'B',index: '1', image: B},
+    {word:'C',index: '2', image: require('../../assets/images/hands/C.png') },
+    {word:'F',index: '5', image: require('../../assets/images/hands/F.png') },
+    {word:'I',index: '8', image: require('../../assets/images/hands/I.png')},
+    {word:'L',index: '9', image: require('../../assets/images/hands/L.png')},
+    {word:'M',index: '10', image: require('../../assets/images/hands/M.png')},
+    {word:'N',index: '11', image: require('../../assets/images/hands/N.png')},
+    {word:'O',index: '12', image: require('../../assets/images/hands/O.png')},
+    {word:'P',index: '13', image: require('../../assets/images/hands/P.png')},
+    {word:'T',index: '16', image: require('../../assets/images/hands/T.png')},
+    {word:'U',index: '17', image: require('../../assets/images/hands/U.png')},
+    {word:'V',index: '18', image: require('../../assets/images/hands/V.png')},
+    {word:'W',index: '19', image: require('../../assets/images/hands/W.png')},
+    {word:'Y',index: '20', image: require('../../assets/images/hands/Y.png')},
+  ];
+  const router = useRouter();
+  const [wordString, setWordString] = useState<string>('');
 
-  const format = useCameraFormat(device, [
-    { photoResolution: { width: 540, height: 360  } }
-  ])
-  
-  useEffect(() => {
-    if (isCapturing) {
-      const ws = new WebSocket('ws://172.16.33.24:8080/ws');
-      wsRef.current = ws;
+  interface Hand {
+    word: string
+    image: any
+    index: string
+  }
 
-      ws.onopen = () => {
-        console.log('Connected to the signaling server');
-      };
+  const handlePressedWord = (word: Hand) => {
+    setWordSelected(word.index);
+    setWordString(word.word);
+    router.push('/detect');
+  }
 
-      ws.onmessage = (msg) => {
-        console.log('Received message:', msg.data);
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      ws.onclose = (event) => {
-        console.log('Disconnected from signaling server', event);
-        setIsCapturing(false);
-      };
-
-      return () => {
-        if (wsRef.current) {
-          wsRef.current.close();
-          wsRef.current = null;
-        }
-      };
-    } else {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-    }
-  }, [isCapturing]);
-
-
-  if (!hasPermission) 
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>No camera permission</Text>
-        <Button title="Request permission" onPress={requestPermission} />
-      </View>
-    );
-  if (device == null){ return <Text>Loading...</Text>}
-
-    const convertirBlobToBase64 = (blob: Blob) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    const flipImageOnYAxis = async (photoUri:any) => {
-      // Flip the image vertically using ImageManipulator
-      const flippedImage = await ImageManipulator.manipulateAsync(
-        photoUri,
-        [{ flip: ImageManipulator.FlipType.Vertical }],
-        { compress: 1, format: ImageManipulator.SaveFormat.PNG }
-      );
-    
-      return flippedImage.uri;  // Return the new flipped image URI
-    };
-    
-    const captureAndSend = async () => {
-      if(cameraRef.current == null) return;
-      try {
-        const photo = await cameraRef.current.takePhoto();
-        const photoUri = `file://${photo.path}`;
-        photo.isMirrored=true;
-        photo.orientation='portrait';
-        
-        const base64 = await fetch(photoUri);
-        const blob = await base64.blob();
-        const base64Image = await convertirBlobToBase64(blob);
-    
-        sendImageToServer(base64Image);
-      }
-      catch (error) {
-        console.error(error);
-      }
-    };
-
-    const sendImageToServer = async (base64Image: any) => {
-      setTimeout(() => {
-        if(wsRef.current == null) return;
-        wsRef.current.send(
-          JSON.stringify({
-            tipo: 0,
-            data: base64Image,
-          })
-        );
-      },0);
-    }
-
-    const startCapturing = () => {
-      console.log('Start capturing');
-      setIsCapturing(true)
-      captureIntervalRef.current = setInterval(captureAndSend, 50);
-    }
-
+  const renderItem = ({ item }: {item:Hand}) => (
+    <TouchableOpacity onPress={() => handlePressedWord(item)}>
+      <Image source={item.image} style={styles.image} />
+    </TouchableOpacity>
+  );
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.container} className='justify-center items-center'>
-        <Text>
-          hola
-        </Text>
-        <Camera
-          style={styles.camera}
-          device={device}
-          isActive={true}
-          pixelFormat='rgb'
-          photo={true}
-          ref={cameraRef}
-          format={format}
-          photoQualityBalance="speed" 
+      <Text style={styles.titleText}>
+        Para iniciar seleccuiona una letra
+      </Text>
+      <View style={styles.flatListContainer}>
+        <FlatList
+          data={handWord}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.word}
+          numColumns={2}
+          contentContainerStyle={styles.list}
         />
-        <Button title="Start capturing" onPress={startCapturing} />
-        <Text className='text-2xl ' > {currentWord} </Text>
       </View>
+      <Text style={styles.selectedWordText}>Selected Word: {wordString}</Text>
     </SafeAreaView>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  preview: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'white'
-  },
-  message: {
-    textAlign: 'center',
-    paddingBottom: 10,
-  },
-  camera: {
-    flex: 1/2,
-    justifyContent: 'flex-end',
     alignItems: 'center',
-    width: '80%'
+    backgroundColor: 'white',
   },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
+  titleText: {
+    fontSize: 20,
+    marginBottom: 20,
   },
-  button: {
-    flex: 1,
-    alignSelf: 'flex-end',
+  flatListContainer: {
+    height: '60%',
+    width: '100%',
+  },
+  list: {
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+  image: {
+    width: 100,
+    height: 100,
+    margin: 10,
+  },
+  selectedWordText: {
+    fontSize: 20,
+    marginTop: 20,
   },
 });
