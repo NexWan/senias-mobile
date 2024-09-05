@@ -36,7 +36,7 @@ export default function HomeScreen() {
   }
 
   const handlePressedWord = (word: Hand) => {
-    setWordSelected(word.index);
+    setWordSelected(word);
     setWordString(word.word);
     router.push('/detect');
   }

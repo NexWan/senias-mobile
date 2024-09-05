@@ -1,9 +1,11 @@
-import {StyleSheet, Button } from 'react-native';
+import {StyleSheet, Button, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import {Camera, useCameraDevice, useCameraFormat, useCameraPermission } from 'react-native-vision-camera'
 import { useWordContext } from '@/context/useWordContext';
+import { useFocusEffect } from 'expo-router';
+import React from 'react';
 
 export default function Detect() {
   const device = useCameraDevice('front');
@@ -14,10 +16,40 @@ export default function Detect() {
   const wsRef = useRef<WebSocket | null>(null);
   const { word: selectedWord, setWord: setWordSelected } = useWordContext();
   const similarityRef = useRef<number | null>(null);
+  const [counter, setCounter] = useState<number>(10); // Set initial counter value
+  const [showModal, setShowModal] = useState<boolean>(true); // Boolean to control modal visibility
+
 
   const format = useCameraFormat(device, [
     { photoResolution: { width: 540, height: 360  } }
   ])
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset all state to default values
+      setCounter(10);
+      setShowModal(true);
+      similarityRef.current = null;
+  
+      return () => {
+        // Cleanup if necessary
+      };
+    }, [])
+  );
+
+  
+useEffect(() => {
+  if (showModal && counter > 0) {
+    const timer = setInterval(() => {
+      setCounter((prevCounter) => prevCounter - 1);
+    }, 100);
+
+    return () => clearInterval(timer);
+  } else if (counter === 0) {
+    setShowModal(false);
+  }
+}, [showModal, counter]);
+
   
   useEffect(() => {
     if (isCapturing) {
@@ -113,9 +145,17 @@ export default function Detect() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.container} className='justify-center items-center'>
-        <Text>
-          {selectedWord}
+    <Modal visible={showModal} style={styles.modal}>
+      <View className='justify-center items-center' style={{flex:1}}>
+        <Text className='text-2xl mx-auto m-3'> Usted ha seleccionado la letra:</Text>
+        <Text className='text-3xl mx-auto font-bold mb-3'> {selectedWord.word}</Text>
+        <Image source={selectedWord.image} className='w-32 h-32 rounded-full mb-5' />
+        <Text style={styles.justifiedText}> Intente replicar la seña en la camara frontal de su dispositivo </Text>
+        </View>
+    </Modal>
+      <View style={styles.container} className='justify-center items-center flex-1'>
+        <Text className='text-2xl'>
+          {selectedWord.word}
         </Text>
         <Camera
           style={styles.camera}
@@ -128,7 +168,6 @@ export default function Detect() {
           photoQualityBalance="speed" 
         />
         <Button title="Start capturing" onPress={startCapturing} />
-        <Text className='text-2xl ' > {selectedWord} </Text>
       </View>
     </SafeAreaView>
   );
@@ -167,9 +206,11 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1/2,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
-    width: '80%'
+    width: '80%',
+    height: '50%',
+    borderRadius: 10,
   },
   buttonContainer: {
     flex: 1,
@@ -186,5 +227,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
+  },
+  modal:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  justifiedText: {
+    textAlign: 'center',
+    fontSize: 18, // Adjust the font size as needed
+    fontWeight: '600', // Adjust the font weight as needed
+    marginHorizontal: 20, // Add horizontal margin if needed
   },
 });
