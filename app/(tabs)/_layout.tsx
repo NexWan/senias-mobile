@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
+import { Image, View } from 'react-native';
+
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -27,7 +29,13 @@ export default function TabLayout() {
           options={{
             title: 'Inicio',
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Image
+                  source={require('@/assets/images/home_icon.png')}
+                  style={{width: 24, height: 24 }}
+                  resizeMode='contain'
+                  />
+              </View>
             ),
           }}
         />

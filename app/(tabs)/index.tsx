@@ -4,17 +4,19 @@ import { useWordContext } from '@/context/useWordContext';
 import { StyleSheet, Text, TouchableOpacity, Image, FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import B from "@/assets/images/hands/B.png"
 import { useState } from 'react';
 
 
 export default function HomeScreen() {
   const { word: selectedWord, setWord: setWordSelected } = useWordContext();
   const handWord = [
-    {word:'B',index: '1', image: B},
+    {word:'A',index: '0', image: require('../../assets/images/hands/A.png')},
+    {word:'B',index: '1', image: require('../../assets/images/hands/B.png') },
     {word:'C',index: '2', image: require('../../assets/images/hands/C.png') },
+    {word:'D',index: '3', image: require('../../assets/images/hands/D.png') },
+    {word:'E',index: '4', image: require('../../assets/images/hands/E.png') },
     {word:'F',index: '5', image: require('../../assets/images/hands/F.png') },
-    {word:'I',index: '8', image: require('../../assets/images/hands/I.png')},
+   /* {word:'I',index: '8', image: require('../../assets/images/hands/I.png')},
     {word:'L',index: '9', image: require('../../assets/images/hands/L.png')},
     {word:'M',index: '10', image: require('../../assets/images/hands/M.png')},
     {word:'N',index: '11', image: require('../../assets/images/hands/N.png')},
@@ -24,7 +26,7 @@ export default function HomeScreen() {
     {word:'U',index: '17', image: require('../../assets/images/hands/U.png')},
     {word:'V',index: '18', image: require('../../assets/images/hands/V.png')},
     {word:'W',index: '19', image: require('../../assets/images/hands/W.png')},
-    {word:'Y',index: '20', image: require('../../assets/images/hands/Y.png')},
+    {word:'Y',index: '20', image: require('../../assets/images/hands/Y.png')},*/
   ];
   const router = useRouter();
   const [wordString, setWordString] = useState<string>('');
@@ -44,6 +46,7 @@ export default function HomeScreen() {
   const renderItem = ({ item }: {item:Hand}) => (
     <TouchableOpacity onPress={() => handlePressedWord(item)}>
       <Image source={item.image} style={styles.image} />
+      <Text className='text-xl mx-auto font-bold'>{item.word}</Text>
     </TouchableOpacity>
   );
   return (

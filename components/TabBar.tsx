@@ -1,11 +1,16 @@
 import React from 'react'
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Text } from 'react-native';
-
+import {AntDesign, Feather} from '@expo/vector-icons'
 function TabBar({ state, descriptors, navigation }:{state:any, descriptors:any, navigation:any}) {
 
     const primaryColor = '#0891b2';
     const greyColor = '#737373';
+
+    const icons = {
+        index: (props)=> <AntDesign name="home" size={24} color="black" {...props} />,
+        detect: (props)=> <AntDesign name="camera" size={24} color="black" {...props}/>
+    }
 
   return (
     <View style={styles.tabContainer}>
@@ -51,7 +56,12 @@ function TabBar({ state, descriptors, navigation }:{state:any, descriptors:any, 
             onLongPress={onLongPress}
             style={styles.tabbarItem}
             >
-            <Text style={{ color: isFocused ? primaryColor : greyColor }}>
+                {
+                    icons[route.name]({
+                        color: isFocused? primaryColor: greyColor
+                    })
+                }
+            <Text style={{ color: isFocused ? primaryColor : greyColor }} className='text-md'>
                 {label}
             </Text>
             </TouchableOpacity>
@@ -77,8 +87,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        bottom: 10,
+        bottom: 0,
         backgroundColor: 'white',
+        fontSize: 25,
     },
     tabContainer: {
         flex: 1/10,
@@ -87,6 +98,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderTopEndRadius: 20,
         borderTopLeftRadius: 20,
+        paddingTop: 15,
     }
 })
 
