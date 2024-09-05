@@ -35,7 +35,7 @@ export default function HomeScreen() {
     };
 
     return () => {
-  
+      
     };
   }, []);
 
@@ -88,13 +88,13 @@ export default function HomeScreen() {
             data: base64Image,
           })
         );
-      },10000);
+      },500);
     }
 
     const startCapturing = () => {
       console.log('Start capturing');
       setIsCapturing(true)
-      captureIntervalRef.current = setInterval(captureAndSend, 10000);
+      captureIntervalRef.current = setInterval(captureAndSend, 500);
     }
 
   return (
