@@ -5,15 +5,14 @@ import { View, Text } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import {Camera, Frame, useCameraDevice, useCameraFormat, useCameraPermission, useFrameProcessor, } from 'react-native-vision-camera'
 import { Worklets } from 'react-native-worklets-core';
-import { frameToBase64 } from 'vision-camera-base64';
 
 export default function HomeScreen() {
   const device = useCameraDevice('front');
+  const [isCapturing, setIsCapturing] = useState(false);
   const { hasPermission, requestPermission } = useCameraPermission()  
+  const cameraRef = useRef<Camera>(null);
+  const captureIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const format = useCameraFormat(device, [
-    { videoResolution: { width: 960, height: 600 }, fps: 24, }
-  ])
 
   useEffect(() => {
     const ws = new WebSocket('ws://172.16.33.24:8080/ws');
@@ -36,32 +35,10 @@ export default function HomeScreen() {
     };
 
     return () => {
-      ws.close();
+  
     };
   }, []);
 
-  const sendMessage =  Worklets.createRunOnJS((message: any) => {
-    if (wsRef.current) {
-      const data = message.toArrayBuffer()
-      const dataAsUint = new Uint8Array(data)
-      const sendInfo = {
-        tipo: 1,
-        data: message,
-        width: message.width,
-        height: message.height,
-        channels: 3,
-        isValid: message.isValid,
-        arreglo: Array.from(dataAsUint)
-      }
-      wsRef.current.send(JSON.stringify(sendInfo));
-    }
-  })
-
-  const frameProcesor = useFrameProcessor((frame) => {
-    'worklet'
-    const imageToBase64 = frameToBase64(frame)
-    console.log(imageToBase64)
-  }, [])
 
   if (!hasPermission) 
     return (
@@ -71,15 +48,68 @@ export default function HomeScreen() {
       </View>
     );
   if (device == null){ return <Text>Loading...</Text>}
+
+    const convertirBlobToBase64 = (blob: Blob) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    const captureAndSend = async () => {
+      //console.log(cameraRef.current);
+      if(cameraRef.current == null) return;
+      try {
+        const photo = await cameraRef.current.takePhoto();
+        //console.log(photo);
+
+        const photoUri = `file://${photo.path}`;
+
+        const base64 = await fetch(photoUri);
+        const blob = await base64.blob();
+        const base64Image = await convertirBlobToBase64(blob);
+
+        sendImageToServer(base64Image);
+        //console.log(base64);
+      }
+      catch (error) {
+        console.error(error);
+      }
+    }
+
+    const sendImageToServer = async (base64Image: any) => {
+      setTimeout(() => {
+        if(wsRef.current == null) return;
+        wsRef.current.send(
+          JSON.stringify({
+            tipo: 1,
+            data: base64Image,
+          })
+        );
+      },10000);
+    }
+
+    const startCapturing = () => {
+      console.log('Start capturing');
+      setIsCapturing(true)
+      captureIntervalRef.current = setInterval(captureAndSend, 10000);
+    }
+
   return (
-    <Camera
-      style={StyleSheet.absoluteFill}
-      device={device}
-      isActive={true}
-      frameProcessor={frameProcesor}
-      format={format}
-      pixelFormat='rgb'
-    />
+    <View style={styles.container}>
+      <Camera
+        style={StyleSheet.absoluteFill}
+        device={device}
+        isActive={true}
+        pixelFormat='rgb'
+        photo={true}
+        ref={cameraRef}
+      />
+
+      <Button title="Start capturing" onPress={startCapturing} />
+    </View>
   );
 }
 

@@ -6,10 +6,6 @@ module.exports = function (api) {
     [
       "nativewind/babel", 
       'react-native-worklets-core/plugin',
-      'react-native-reanimated/plugin',
-      {
-      globals: ['__frameToBase64'],
-      }
     ]
   }
 };
