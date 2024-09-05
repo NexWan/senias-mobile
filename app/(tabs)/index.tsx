@@ -15,29 +15,40 @@ export default function HomeScreen() {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://172.16.33.24:8080/ws');
-    wsRef.current = ws;
+    if (isCapturing) {
+      const ws = new WebSocket('ws://172.16.33.24:8080/ws');
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('Connected to the signaling server');
-    };
+      ws.onopen = () => {
+        console.log('Connected to the signaling server');
+      };
 
-    ws.onmessage = (msg) => {
-      console.log('Received message:', msg.data); 
-    };
+      ws.onmessage = (msg) => {
+        console.log('Received message:', msg.data);
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
 
-    ws.onclose = (event) => {
-      console.log('Disconnected from signaling server', event);
-    };
+      ws.onclose = (event) => {
+        console.log('Disconnected from signaling server', event);
+        setIsCapturing(false);
+      };
 
-    return () => {
-      
-    };
-  }, []);
+      return () => {
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
+        }
+      };
+    } else {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    }
+  }, [isCapturing]);
 
 
   if (!hasPermission) 
