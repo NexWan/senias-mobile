@@ -5,6 +5,7 @@ import { View, Text } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import {Camera, Frame, useCameraDevice, useCameraFormat, useCameraPermission, useFrameProcessor, } from 'react-native-vision-camera'
 import { Worklets } from 'react-native-worklets-core';
+import { frameToBase64 } from 'vision-camera-base64';
 
 export default function HomeScreen() {
   const device = useCameraDevice('front');
@@ -58,9 +59,8 @@ export default function HomeScreen() {
 
   const frameProcesor = useFrameProcessor((frame) => {
     'worklet'
-    if (frame.pixelFormat == 'rgb' && frame.isValid) {
-      sendMessage(frame);
-    }
+    const imageToBase64 = frameToBase64(frame)
+    console.log(imageToBase64)
   }, [])
 
   if (!hasPermission) 
