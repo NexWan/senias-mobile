@@ -5,6 +5,7 @@ import { View, Text } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import {Camera, Frame, useCameraDevice, useCameraFormat, useCameraPermission, useFrameProcessor, } from 'react-native-vision-camera'
 import { Worklets } from 'react-native-worklets-core';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export default function HomeScreen() {
   const device = useCameraDevice('front');
@@ -16,7 +17,10 @@ export default function HomeScreen() {
   const [currentWord, setCurrentWord] = useState<string | null>(null);
   const similarityRef = useRef<number | null>(null);
 
-
+  const format = useCameraFormat(device, [
+    { photoResolution: { width: 540, height: 360  } }
+  ])
+  
   useEffect(() => {
     if (isCapturing) {
       const ws = new WebSocket('ws://172.16.33.24:8080/ws');
@@ -72,26 +76,35 @@ export default function HomeScreen() {
       });
     }
 
+    const flipImageOnYAxis = async (photoUri:any) => {
+      // Flip the image vertically using ImageManipulator
+      const flippedImage = await ImageManipulator.manipulateAsync(
+        photoUri,
+        [{ flip: ImageManipulator.FlipType.Vertical }],
+        { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+      );
+    
+      return flippedImage.uri;  // Return the new flipped image URI
+    };
+    
     const captureAndSend = async () => {
-      //console.log(cameraRef.current);
       if(cameraRef.current == null) return;
       try {
         const photo = await cameraRef.current.takePhoto();
-        //console.log(photo);
-
         const photoUri = `file://${photo.path}`;
-
+        photo.isMirrored=true;
+        photo.orientation='portrait';
+        
         const base64 = await fetch(photoUri);
         const blob = await base64.blob();
         const base64Image = await convertirBlobToBase64(blob);
-
+    
         sendImageToServer(base64Image);
-        //console.log(base64);
       }
       catch (error) {
         console.error(error);
       }
-    }
+    };
 
     const sendImageToServer = async (base64Image: any) => {
       setTimeout(() => {
@@ -102,13 +115,13 @@ export default function HomeScreen() {
             data: base64Image,
           })
         );
-      },500);
+      },0);
     }
 
     const startCapturing = () => {
       console.log('Start capturing');
       setIsCapturing(true)
-      captureIntervalRef.current = setInterval(captureAndSend, 500);
+      captureIntervalRef.current = setInterval(captureAndSend, 50);
     }
 
   return (
@@ -124,6 +137,8 @@ export default function HomeScreen() {
           pixelFormat='rgb'
           photo={true}
           ref={cameraRef}
+          format={format}
+          photoQualityBalance="speed" 
         />
         <Button title="Start capturing" onPress={startCapturing} />
         <Text className='text-2xl ' > {currentWord} </Text>
