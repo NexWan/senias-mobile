@@ -13,6 +13,9 @@ export default function HomeScreen() {
   const cameraRef = useRef<Camera>(null);
   const captureIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const [currentWord, setCurrentWord] = useState<string | null>(null);
+  const similarityRef = useRef<number | null>(null);
+
 
   useEffect(() => {
     if (isCapturing) {
@@ -95,7 +98,7 @@ export default function HomeScreen() {
         if(wsRef.current == null) return;
         wsRef.current.send(
           JSON.stringify({
-            tipo: 1,
+            tipo: 0,
             data: base64Image,
           })
         );
@@ -109,18 +112,23 @@ export default function HomeScreen() {
     }
 
   return (
-    <View style={styles.container}>
-      <Camera
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={true}
-        pixelFormat='rgb'
-        photo={true}
-        ref={cameraRef}
-      />
-
-      <Button title="Start capturing" onPress={startCapturing} />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container} className='justify-center items-center'>
+        <Text>
+          hola
+        </Text>
+        <Camera
+          style={styles.camera}
+          device={device}
+          isActive={true}
+          pixelFormat='rgb'
+          photo={true}
+          ref={cameraRef}
+        />
+        <Button title="Start capturing" onPress={startCapturing} />
+        <Text className='text-2xl ' > {currentWord} </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -149,13 +157,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+    backgroundColor: 'white'
   },
   message: {
     textAlign: 'center',
     paddingBottom: 10,
   },
   camera: {
-    flex: 1,
+    flex: 1/2,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    width: '80%'
   },
   buttonContainer: {
     flex: 1,
