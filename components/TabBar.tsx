@@ -2,8 +2,10 @@ import React from 'react'
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Text } from 'react-native';
 import {AntDesign, Feather} from '@expo/vector-icons'
-function TabBar({ state, descriptors, navigation }:{state:any, descriptors:any, navigation:any}) {
+import { useCameraIsActive } from '@/context/useCameraContext';
 
+function TabBar({ state, descriptors, navigation }:{state:any, descriptors:any, navigation:any}) {
+    const { isActive, setActive } = useCameraIsActive();
     const primaryColor = '#0891b2';
     const greyColor = '#737373';
 
@@ -32,7 +34,12 @@ function TabBar({ state, descriptors, navigation }:{state:any, descriptors:any, 
             target: route.key,
             canPreventDefault: true,
             });
-
+            console.log(route.key)
+            // if(route.name == 'detect'){
+            //     setActive(true)
+            // }else{
+            //     setActive(false)
+            // }
             if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name, route.params);
             }

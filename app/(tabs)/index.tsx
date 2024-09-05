@@ -3,8 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWordContext } from '@/context/useWordContext';
 import { StyleSheet, Text, TouchableOpacity, Image, FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useCameraIsActive } from '@/context/useCameraContext';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 
 export default function HomeScreen() {
@@ -16,9 +17,11 @@ export default function HomeScreen() {
     {word:'D',index: '3', image: require('../../assets/images/hands/D.png') },
     {word:'E',index: '4', image: require('../../assets/images/hands/E.png') },
     {word:'F',index: '5', image: require('../../assets/images/hands/F.png') },
-   /* {word:'I',index: '8', image: require('../../assets/images/hands/I.png')},
+    {word:'G',index: '6', image: require('../../assets/images/hands/G.png') },
+    {word:'H',index: '7', image: require('../../assets/images/hands/H.png') },
+    {word:'I',index: '8', image: require('../../assets/images/hands/I.png')},
     {word:'L',index: '9', image: require('../../assets/images/hands/L.png')},
-    {word:'M',index: '10', image: require('../../assets/images/hands/M.png')},
+    /*{word:'M',index: '10', image: require('../../assets/images/hands/M.png')},
     {word:'N',index: '11', image: require('../../assets/images/hands/N.png')},
     {word:'O',index: '12', image: require('../../assets/images/hands/O.png')},
     {word:'P',index: '13', image: require('../../assets/images/hands/P.png')},
@@ -30,6 +33,7 @@ export default function HomeScreen() {
   ];
   const router = useRouter();
   const [wordString, setWordString] = useState<string>('');
+  const { isActive, setActive } = useCameraIsActive();
 
   interface Hand {
     word: string
@@ -37,7 +41,10 @@ export default function HomeScreen() {
     index: string
   }
 
+
   const handlePressedWord = (word: Hand) => {
+    setActive(true);
+    console.log(isActive)
     setWordSelected(word);
     setWordString(word.word);
     router.push('/detect');
