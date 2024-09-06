@@ -5,3 +5,8 @@ una serie de imagenes en tiepo real para ser procesadas para un modelo de IA med
 
 
 # TEAM CRUSTACEOS
+- Leonardo (yo)
+- [ramses](https://github.com/RamMaths)
+- [Mario](https://github.com/RamMaths)
+- Valeria
+- Teresa
