@@ -38,21 +38,22 @@ export default function Detect() {
 
   const restoreDefaultValues = () => {
     setCounter(10);
-    setShowModal(false);
+    setShowModal(true);
     setIsCapturing(false);
     setGoodModal(false);
     setCameraActive(false);
-    setLoading(true)
+    setLoading(true);
     similarityRef.current = null;
     clearInterval(captureIntervalRef.current!);
+    setWordSelected({ word: "", index: "", image: "" });
   };
 
   useFocusEffect(
     React.useCallback(() => {
       // Reset all state to default values
-      restoreDefaultValues();
       return () => {
         // Cleanup camera reference and other resources
+        restoreDefaultValues();
       };
     }, [])
   );
@@ -61,7 +62,7 @@ export default function Detect() {
     if (showModal && counter > 0) {
       const timer = setInterval(() => {
         setCounter((prevCounter) => prevCounter - 1);
-      }, 100);
+      }, 500);
 
       return () => clearInterval(timer);
     } else if (counter === 0) {
@@ -152,7 +153,7 @@ export default function Detect() {
 
       sendImageToServer(base64Image);
     } catch (error) {
-      console.error(error);
+      return;
     }
   };
 
@@ -179,7 +180,7 @@ export default function Detect() {
     setCameraActive(true);
     console.log("Start capturing");
     setIsCapturing(true);
-    captureIntervalRef.current = setInterval(captureAndSend, 50);
+    captureIntervalRef.current = setInterval(captureAndSend, 5);
   };
   if (selectedWord.word.length === 0) {
     return (
@@ -233,74 +234,82 @@ export default function Detect() {
   //     </View>
   //   )
   //  }else {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Modal visible={goodModal} style={styles.modal}>
-          <View className="justify-center items-center" style={{ flex: 1 }}>
-            <Text className="text-2xl mx-auto m-3">
-              {" "}
-              Usted ha replicado la seña correctamente
-            </Text>
-            <Text className="text-3xl mx-auto font-bold mb-3">
-              {" "}
-              {selectedWord.word}
-            </Text>
-            <Image
-              source={selectedWord.image}
-              className="w-32 h-32 rounded-full mb-5"
-            />
-            <Button
-              title="Volver a seleccionar palabra"
-              onPress={() => {
-                restoreDefaultValues();
-                router.push("/");
-              }}
-            />
-          </View>
-        </Modal>
-        <Modal visible={showModal} style={styles.modal}>
-          <View className="justify-center items-center" style={{ flex: 1 }}>
-            <Text className="text-2xl mx-auto m-3">
-              {" "}
-              Usted ha seleccionado la letra:
-            </Text>
-            <Text className="text-3xl mx-auto font-bold mb-3">
-              {" "}
-              {selectedWord.word}
-            </Text>
-            <Image
-              source={selectedWord.image}
-              className="w-32 h-32 rounded-full mb-5"
-            />
-            <Text style={styles.justifiedText}>
-              {" "}
-              Intente replicar la seña en la camara frontal de su dispositivo{" "}
-            </Text>
-          </View>
-        </Modal>
-        {!showModal && (
-          <View
-            style={styles.container}
-            className="justify-center items-center flex-1"
-          >
+  return (
+    <SafeAreaView style={styles.container}>
+      <Modal visible={goodModal} style={styles.modal}>
+        <View className="justify-center items-center" style={{ flex: 1 }}>
+          <Text className="text-2xl mx-auto m-3">
+            {" "}
+            Usted ha replicado la seña correctamente
+          </Text>
+          <Text className="text-3xl mx-auto font-bold mb-3">
+            {" "}
+            {selectedWord.word}
+          </Text>
+          <Image
+            source={selectedWord.image}
+            className="w-32 h-32 rounded-full mb-5"
+          />
+          <Button
+            title="Volver a seleccionar palabra"
+            onPress={() => {
+              restoreDefaultValues();
+              router.push("/");
+            }}
+          />
+        </View>
+      </Modal>
+      <Modal visible={showModal} style={styles.modal}>
+        <View className="justify-center items-center" style={{ flex: 1 }}>
+          <Text className="text-2xl mx-auto m-3">
+            {" "}
+            Usted ha seleccionado la letra:
+          </Text>
+          <Text className="text-3xl mx-auto font-bold mb-3">
+            {" "}
+            {selectedWord.word}
+          </Text>
+          <Image
+            source={selectedWord.image}
+            className="w-32 h-32 rounded-full mb-5"
+          />
+          <Text style={styles.justifiedText}>
+            {" "}
+            Intente replicar la seña en la camara frontal de su dispositivo{" "}
+          </Text>
+        </View>
+      </Modal>
+      {!showModal && (
+        <View
+          style={styles.container}
+          className="justify-center items-center flex-1"
+        >
+          <View className="mx-auto flex flex-col text-center justify-center items-center">
             <Text className="text-2xl">{selectedWord.word}</Text>
-            <Camera
-              style={styles.camera}
-              device={device}
-              isActive={isActive}
-              pixelFormat="rgb"
-              photo={true}
-              ref={cameraRef}
-              format={format}
-              photoQualityBalance="speed"
+            {isActive && (
+              <Camera
+                className="h-72 w-64"
+                device={device}
+                isActive={isActive}
+                pixelFormat="rgb"
+                photo={true}
+                ref={cameraRef}
+                format={format}
+                photoQualityBalance="speed"
+                onError={(error) => console.error("Camera error:", error)}
+              />
+            )}
+            <Button
+              title="Start capturing"
+              onPress={startCapturing}
+              className="my-5"
             />
-            <Button title="Start capturing" onPress={startCapturing} />
           </View>
-        )}
-      </SafeAreaView>
-    );
-  }
-
+        </View>
+      )}
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
   titleContainer: {
@@ -339,7 +348,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "80%",
     height: "50%",
-    borderRadius: 500,
+    marginHorizontal: "auto",
   },
   buttonContainer: {
     flex: 1,
